@@ -1,0 +1,153 @@
+<%layout("./layouts/boilerplate")%>
+
+<div class="row mt-3">
+    <div class="col-8 offset-3">
+        <h3><%= listing.title %></h3>
+    </div>
+
+    <div class="card col-6 offset-3 show-card listing-card">
+        <img 
+            src="<%= listing.image?.url || listing.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e' %>" 
+            class="card-img-top show-img"  
+            style="height: 300px; object-fit: cover;"
+        >
+
+        <div class="card-body">
+
+            <p>Owned by : 
+                <i><%= listing.owner ? listing.owner.username : "Anonymous" %></i>
+            </p>
+
+            <p><%= listing.description %></p>
+
+            <h5>₹ <%= listing.price.toLocaleString("en-IN") %> / night</h5>
+
+            <!-- ✅ BOOKING BOX -->
+            <div class="booking-box p-3 mt-3">
+
+                <form action="/listings/book/<%= listing._id %>" method="POST">
+
+                    <!-- DATE -->
+                    <div class="row mb-2">
+                        <div class="col">
+                            <label>Check-in</label>
+                            <input type="date" name="checkIn" class="form-control" required>
+                        </div>
+
+                        <div class="col">
+                            <label>Check-out</label>
+                            <input type="date" name="checkOut" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <!-- NAME -->
+                    <div class="mb-2">
+                        <label>Name</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+
+                    <!-- AGE -->
+                    <div class="mb-2">
+                        <label>Age</label>
+                        <input type="number" name="age" class="form-control" required>
+                    </div>
+
+                    <!-- GUESTS -->
+                   <div class="mb-2">
+                        <label>Guests</label>
+                        <select name="guests" class="form-control" id="guestSelect">
+                            <option value="1">1 Guest</option>
+                            <option value="2">2 Guests</option>
+                            <option value="3">3 Guests</option>
+                            <option value="4">4 Guests</option>
+                            <option value="5">5 Guests</option>
+                        </select>
+                    </div>
+                    <div id="guestFields"></div>
+
+                    <!-- BUTTON -->
+                    <button type="button" id="checkBtn" class="btn btn-success w-100 mt-2">
+                        Check Availability
+                    </button>
+
+                    <div class="mb-2" id="paymentBox" style="display:none;">
+                        <label>Payment Method</label>
+                        <select name="paymentMethod" class="form-control">
+                            <option value="UPI">UPI</option>
+                            <option value="Card">Card</option>
+                            <option value="Cash">Cash on Arrival</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="confirmBtn" onclick="return bookingConfirm()" class="btn btn-danger w-100 mt-2" style="display:none;">
+                    Confirm Booking
+                    </button>
+
+                    <p id="availabilityMsg" class="mt-2 fw-bold"></p>
+                    <p class="mt-2 text-success">
+                        ✔ Free cancellation available
+                    </p>
+
+                </form>
+            </div>
+
+            <p class="mt-3"><%= listing.location %></p>
+            <p><%= listing.country %></p>
+
+        </div>
+    </div>
+
+    <!-- EDIT DELETE -->
+    <% if (currUser && listing.owner && listing.owner._id.equals(currUser._id)) { %>
+    <div class="btns">
+        <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark col-1 offset-3">
+            Edit
+        </a>
+
+        <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE">
+            <button class="btn btn-dark offset-4">Delete</button>
+        </form>
+    </div>
+    <% } %>
+
+</div>
+
+</div>
+
+<script>
+const checkBtn = document.getElementById("checkBtn");
+
+if(checkBtn){
+  checkBtn.addEventListener("click", function(){
+
+    const checkIn = document.querySelector('input[name="checkIn"]').value;
+    const checkOut = document.querySelector('input[name="checkOut"]').value;
+    const guests = document.getElementById("guestSelect").value;
+    const msg = document.getElementById("availabilityMsg");
+
+    if(!checkIn || !checkOut){
+      msg.innerHTML = "❌ Please select dates";
+      msg.style.color = "red";
+      return;
+    }
+
+    if(checkOut <= checkIn){
+      msg.innerHTML = "❌ Check-out must be after check-in";
+      msg.style.color = "red";
+      return;
+    }
+
+    msg.innerHTML = "✅ Available for " + guests + " guest(s)";
+    msg.style.color = "green";
+    document.getElementById("confirmBtn").style.display = "block";
+    document.getElementById("paymentBox").style.display = "block";
+  });
+}
+</script>
+
+<script>
+function bookingConfirm(){
+   alert("✅ Booking Confirmed Successfully!");
+   return true;
+}
+</script>
